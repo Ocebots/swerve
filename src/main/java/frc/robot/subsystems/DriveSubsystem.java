@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
+import com.kauailabs.navx.frc.AHRS;
 
 public class DriveSubsystem extends SubsystemBase {
     // Create MAXSwerveModules
@@ -37,7 +38,7 @@ public class DriveSubsystem extends SubsystemBase {
             DriveConstants.kBackRightChassisAngularOffset);
 
     // The gyro sensor
-    private final ADIS16470_IMU m_gyro = new ADIS16470_IMU();
+    private final AHRS m_gyro = new AHRS();
 
     // Slew rate filter variables for controlling lateral acceleration
     private double m_currentRotation = 0.0;
@@ -147,7 +148,7 @@ public class DriveSubsystem extends SubsystemBase {
              * Allow the translation speed to change based on the limiter. This will result in the robot turning while it maintains speed
              *
              * if the difference is large and the robot is moving, slow down
-             * if stopped wrap the direction and accelerate away.
+             * if stopped swap the direction and accelerate away.
              * This performs a 180 flip that is then corrected by the first case. The robot stops, then accelerates backward
              *
              * if the difference is in the middle, step the current angle towards the target and slow the robot.
@@ -165,7 +166,7 @@ public class DriveSubsystem extends SubsystemBase {
                     // keep currentTranslationDir unchanged
                     m_currentTranslationMag = m_magLimiter.calculate(0.0);
                 } else {
-                    // if the robot speed is already at zero wrap the angle so the robot reverses direction and begin to re-accelerate
+                    // if the robot speed is already at zero flip the angle so the robot reverses direction and begin to re-accelerate
                     m_currentTranslationDir = SwerveUtils.WrapAngle(m_currentTranslationDir + Math.PI);
                     m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag);
                 }
