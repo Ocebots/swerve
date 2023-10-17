@@ -42,9 +42,9 @@ public final class Constants {
             new Translation2d(-wheelBase / 2, -trackWidth / 2));
 
     // Angular offsets of the modules relative to the chassis in radians
-    public static final double frontLeftChassisAngularOffset = -Math.PI / 2;
-    public static final double frontRightChassisAngularOffset = -Math.PI / 2;
-    public static final double backLeftChassisAngularOffset = Math.PI;
+    public static final double frontLeftChassisAngularOffset = Math.PI;
+    public static final double frontRightChassisAngularOffset = 0;
+    public static final double backLeftChassisAngularOffset = 0;
     public static final double backRightChassisAngularOffset = Math.PI / 2;
 
     // SPARK MAX CAN IDs
