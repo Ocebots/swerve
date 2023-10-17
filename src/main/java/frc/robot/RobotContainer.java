@@ -19,9 +19,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.OIConstants;
+import frc.constants.AutoConstants;
+import frc.constants.ControllerConstants;
+import frc.constants.DriveConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class RobotContainer {
   private final DriveSubsystem robotDrive = new DriveSubsystem();
 
   // The driver's controller
-  XboxController driverController = new XboxController(OIConstants.driverControllerPort);
+  XboxController driverController = new XboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -49,16 +49,16 @@ public class RobotContainer {
         // Turning is controlled by the X axis of the right stick.
         new RunCommand(
             () ->
-                this.robotDrive.drive(
+                robotDrive.drive(
                     -MathUtil.applyDeadband(
-                        this.driverController.getLeftY(), OIConstants.driveDeadband),
+                        driverController.getLeftY(), ControllerConstants.DRIVE_DEADBAND),
                     -MathUtil.applyDeadband(
-                        this.driverController.getLeftX(), OIConstants.driveDeadband),
+                        driverController.getLeftX(), ControllerConstants.DRIVE_DEADBAND),
                     -MathUtil.applyDeadband(
-                        this.driverController.getRightX(), OIConstants.driveDeadband),
+                        driverController.getRightX(), ControllerConstants.DRIVE_DEADBAND),
                     true,
                     true),
-            this.robotDrive));
+            robotDrive));
   }
 
   /**
@@ -81,10 +81,10 @@ public class RobotContainer {
     // Create config for trajectory
     TrajectoryConfig config =
         new TrajectoryConfig(
-                AutoConstants.maxSpeedMetersPerSecond,
-                AutoConstants.maxAccelerationMetersPerSecondSquared)
+                AutoConstants.MAX_SPEED_METERS_PER_SECOND,
+                AutoConstants.MAX_ACCELERATION_METERS_PER_SECOND_SQUARED)
             // Add kinematics to ensure max speed is actually obeyed
-            .setKinematics(DriveConstants.driveKinematics);
+            .setKinematics(DriveConstants.DRIVE_KINEMATICS);
 
     // An example trajectory to follow. All units in meters.
     Trajectory exampleTrajectory =
@@ -99,18 +99,18 @@ public class RobotContainer {
 
     var thetaController =
         new ProfiledPIDController(
-            AutoConstants.pThetaController, 0, 0, AutoConstants.thetaControllerConstraints);
+            AutoConstants.P_THETA_CONTROLLER, 0, 0, AutoConstants.THETA_CONTROLLER_CONSTRAINTS);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
     SwerveControllerCommand swerveControllerCommand =
         new SwerveControllerCommand(
             exampleTrajectory,
             this.robotDrive::getPose, // Functional interface to feed supplier
-            DriveConstants.driveKinematics,
+            DriveConstants.DRIVE_KINEMATICS,
 
             // Position controllers
-            new PIDController(AutoConstants.pXController, 0, 0),
-            new PIDController(AutoConstants.pYController, 0, 0),
+            new PIDController(AutoConstants.PX_CONTROLLER, 0, 0),
+            new PIDController(AutoConstants.PY_CONTROLLER, 0, 0),
             thetaController,
             this.robotDrive::setModuleStates,
             this.robotDrive);

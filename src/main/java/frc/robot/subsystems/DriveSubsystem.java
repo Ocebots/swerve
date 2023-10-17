@@ -11,34 +11,35 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.DriveConstants;
+import frc.constants.CANMappings;
+import frc.constants.DriveConstants;
 import frc.utils.SwerveUtils;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
   private final MAXSwerveModule frontLeft =
       new MAXSwerveModule(
-          DriveConstants.frontLeftDrivingCanId,
-          DriveConstants.frontLeftTurningCanId,
-          DriveConstants.frontLeftChassisAngularOffset);
+          CANMappings.FRONT_LEFT_DRIVING,
+          CANMappings.FRONT_LEFT_TURNING,
+          DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
 
   private final MAXSwerveModule frontRight =
       new MAXSwerveModule(
-          DriveConstants.frontRightDrivingCanId,
-          DriveConstants.frontRightTurningCanId,
-          DriveConstants.frontRightChassisAngularOffset);
+          CANMappings.FRONT_RIGHT_DRIVING,
+          CANMappings.FRONT_RIGHT_TURNING,
+          DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
   private final MAXSwerveModule rearLeft =
       new MAXSwerveModule(
-          DriveConstants.rearLeftDrivingCanId,
-          DriveConstants.rearLeftTurningCanId,
-          DriveConstants.backLeftChassisAngularOffset);
+          CANMappings.REAR_LEFT_DRIVING,
+          CANMappings.REAR_LEFT_TURNING,
+          DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
   private final MAXSwerveModule rearRight =
       new MAXSwerveModule(
-          DriveConstants.rearRightDrivingCanId,
-          DriveConstants.rearRightTurningCanId,
-          DriveConstants.backRightChassisAngularOffset);
+          CANMappings.REAR_RIGHT_DRIVING,
+          CANMappings.REAR_RIGHT_TURNING,
+          DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
   // The gyro sensor
   private final AHRS gyro = new AHRS();
@@ -48,14 +49,14 @@ public class DriveSubsystem extends SubsystemBase {
   private double currentTranslationDir = 0.0;
   private double currentTranslationMag = 0.0;
 
-  private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.magnitudeSlewRate);
-  private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.rotationalSlewRate);
+  private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.MAGNITUDE_SLEW_RATE);
+  private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.ROTATIONAL_SLEW_RATE);
   private double prevTime = WPIUtilJNI.now() * 1e-6;
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry odometry =
       new SwerveDriveOdometry(
-          DriveConstants.driveKinematics,
+          DriveConstants.DRIVE_KINEMATICS,
           Rotation2d.fromDegrees(this.gyro.getAngle()),
           new SwerveModulePosition[] {
             this.frontLeft.getPosition(),
@@ -132,7 +133,8 @@ public class DriveSubsystem extends SubsystemBase {
       // else practically don't limit rotational speed
       double directionSlewRate;
       if (this.currentTranslationMag != 0.0) {
-        directionSlewRate = Math.abs(DriveConstants.directionSlewRate / this.currentTranslationMag);
+        directionSlewRate =
+            Math.abs(DriveConstants.DIRECTION_SLEW_RATE / this.currentTranslationMag);
       } else {
         directionSlewRate =
             500.0; // some high number that means the slew rate is effectively instantaneous
@@ -191,7 +193,6 @@ public class DriveSubsystem extends SubsystemBase {
       xSpeedCommanded = this.currentTranslationMag * Math.cos(currentTranslationDir);
       ySpeedCommanded = this.currentTranslationMag * Math.sin(currentTranslationDir);
       this.currentRotation = rotLimiter.calculate(rot);
-
     } else {
       xSpeedCommanded = xSpeed;
       ySpeedCommanded = ySpeed;
@@ -199,12 +200,12 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     // Convert the commanded speeds into the correct units for the drivetrain
-    double xSpeedDelivered = xSpeedCommanded * DriveConstants.maxSpeedMetersPerSecond;
-    double ySpeedDelivered = ySpeedCommanded * DriveConstants.maxSpeedMetersPerSecond;
-    double rotDelivered = this.currentRotation * DriveConstants.maxAngularSpeed;
+    double xSpeedDelivered = xSpeedCommanded * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+    double ySpeedDelivered = ySpeedCommanded * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+    double rotDelivered = this.currentRotation * DriveConstants.MAX_ANGULAR_SPEED;
 
     var swerveModuleStates =
-        DriveConstants.driveKinematics.toSwerveModuleStates(
+        DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeedDelivered,
@@ -213,7 +214,7 @@ public class DriveSubsystem extends SubsystemBase {
                     Rotation2d.fromDegrees(this.gyro.getAngle()))
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, DriveConstants.maxSpeedMetersPerSecond);
+        swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     this.frontLeft.setDesiredState(swerveModuleStates[0]);
     this.frontRight.setDesiredState(swerveModuleStates[1]);
     this.rearLeft.setDesiredState(swerveModuleStates[2]);
@@ -235,7 +236,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void setModuleStates(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
-        desiredStates, DriveConstants.maxSpeedMetersPerSecond);
+        desiredStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     this.frontLeft.setDesiredState(desiredStates[0]);
     this.frontRight.setDesiredState(desiredStates[1]);
     this.rearLeft.setDesiredState(desiredStates[2]);
@@ -270,6 +271,6 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return this.gyro.getRate() * (DriveConstants.gyroReversed ? -1.0 : 1.0);
+    return this.gyro.getRate() * (DriveConstants.GYRO_IS_REVERSED ? -1.0 : 1.0);
   }
 }
