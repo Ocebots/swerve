@@ -16,6 +16,7 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 
 import frc.constants.ModuleConstants;
+import frc.constants.PIDConstants;
 
 public class MAXSwerveModule {
   private final CANSparkMax m_drivingSparkMax;
@@ -74,26 +75,26 @@ public class MAXSwerveModule {
     // to 10 degrees will go through 0 rather than the other direction which is a
     // longer route.
     m_turningPIDController.setPositionPIDWrappingEnabled(true);
-    m_turningPIDController.setPositionPIDWrappingMinInput(ModuleConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT);
-    m_turningPIDController.setPositionPIDWrappingMaxInput(ModuleConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
+    m_turningPIDController.setPositionPIDWrappingMinInput(PIDConstants.TURNING_ENCODER_POSITION_PID_MIN_INPUT);
+    m_turningPIDController.setPositionPIDWrappingMaxInput(PIDConstants.TURNING_ENCODER_POSITION_PID_MAX_INPUT);
 
     // Set the PID gains for the driving motor. Note these are example gains, and you
     // may need to tune them for your own robot!
-    m_drivingPIDController.setP(ModuleConstants.DRIVING_P);
-    m_drivingPIDController.setI(ModuleConstants.DRIVING_I);
-    m_drivingPIDController.setD(ModuleConstants.DRIVING_D);
-    m_drivingPIDController.setFF(ModuleConstants.DRIVING_FF);
-    m_drivingPIDController.setOutputRange(ModuleConstants.DRIVING_MIN_OUTPUT,
-        ModuleConstants.DRIVING_MAX_OUTPUT);
+    m_drivingPIDController.setP(PIDConstants.DRIVING_P);
+    m_drivingPIDController.setI(PIDConstants.DRIVING_I);
+    m_drivingPIDController.setD(PIDConstants.DRIVING_D);
+    m_drivingPIDController.setFF(PIDConstants.DRIVING_FF);
+    m_drivingPIDController.setOutputRange(PIDConstants.DRIVING_MIN_OUTPUT,
+        PIDConstants.DRIVING_MAX_OUTPUT);
 
     // Set the PID gains for the turning motor. Note these are example gains, and you
     // may need to tune them for your own robot!
-    m_turningPIDController.setP(ModuleConstants.TURNING_P);
-    m_turningPIDController.setI(ModuleConstants.TURNING_I);
-    m_turningPIDController.setD(ModuleConstants.TURNING_D);
-    m_turningPIDController.setFF(ModuleConstants.TURNING_FF);
-    m_turningPIDController.setOutputRange(ModuleConstants.TURNING_MIN_OUTPUT,
-        ModuleConstants.TURNING_MAX_OUTPUT);
+    m_turningPIDController.setP(PIDConstants.TURNING_P);
+    m_turningPIDController.setI(PIDConstants.TURNING_I);
+    m_turningPIDController.setD(PIDConstants.TURNING_D);
+    m_turningPIDController.setFF(PIDConstants.TURNING_FF);
+    m_turningPIDController.setOutputRange(PIDConstants.TURNING_MIN_OUTPUT,
+        PIDConstants.TURNING_MAX_OUTPUT);
 
     m_drivingSparkMax.setIdleMode(ModuleConstants.DRIVING_MOTOR_IDLE_MODE);
     m_turningSparkMax.setIdleMode(ModuleConstants.TURNING_MOTOR_IDLE_MODE);
