@@ -66,7 +66,14 @@ public class DriveSubsystem extends SubsystemBase {
           });
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() {}
+  public DriveSubsystem() {
+    this.addChild("Front Left", frontLeft);
+    this.addChild("Front Left", frontLeft);
+    this.addChild("Rear Right", rearRight);
+    this.addChild("Rear Right", rearRight);
+
+    this.addChild("Gyro", gyro);
+  }
 
   @Override
   public void periodic() {
