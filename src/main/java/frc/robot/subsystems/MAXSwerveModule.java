@@ -13,12 +13,11 @@ import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.constants.ModuleConstants;
 import frc.constants.PIDConstants;
 
-public class MAXSwerveModule implements Sendable {
+public class MAXSwerveModule {
   private final CANSparkMax drivingSparkMax;
   private final CANSparkMax turningSparkMax;
 
@@ -173,18 +172,15 @@ public class MAXSwerveModule implements Sendable {
     this.drivingEncoder.setPosition(0);
   }
 
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    builder.addDoubleProperty(
-        "Turn error",
-        () -> this.desiredState.angle.getDegrees() - this.getState().angle.getDegrees(),
-        null);
-    builder.addDoubleProperty(
-        "Drive error",
-        () -> this.desiredState.speedMetersPerSecond - this.getState().speedMetersPerSecond,
-        null);
+  public void sendData(String name) {
+    SmartDashboard.putNumber(
+        name + ": Turn error",
+        this.desiredState.angle.getDegrees() - this.getState().angle.getDegrees());
+    SmartDashboard.putNumber(
+        name + ": Drive error",
+        this.desiredState.speedMetersPerSecond - this.getState().speedMetersPerSecond);
 
-    builder.addDoubleProperty("Turn", () -> this.getState().angle.getDegrees(), null);
-    builder.addDoubleProperty("Drive", () -> this.getState().speedMetersPerSecond, null);
+    SmartDashboard.putNumber(name + ": Turn", this.getState().angle.getDegrees());
+    SmartDashboard.putNumber(name + ": Drive", this.getState().speedMetersPerSecond);
   }
 }

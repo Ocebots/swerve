@@ -67,20 +67,15 @@ public class DriveSubsystem extends SubsystemBase {
           });
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() { // TODO: Test on robot
-    SmartDashboard.putData("frontLeft", frontLeft);
-    SmartDashboard.putData("frontRight", frontRight);
-    SmartDashboard.putData("rearLeft", rearLeft);
-    SmartDashboard.putData("rearRight", rearRight);
+  public DriveSubsystem() {}
 
-    SmartDashboard.putData("gyro", gyro);
+  public void logData() { // TODO: Test on robot
+    frontLeft.sendData("frontLeft");
+    frontRight.sendData("frontRight");
+    rearLeft.sendData("rearLeft");
+    rearRight.sendData("rearRight");
 
-    this.addChild("Front Left", frontLeft);
-    this.addChild("Front Right", frontRight);
-    this.addChild("Rear Left", rearLeft);
-    this.addChild("Rear Right", rearRight);
-
-    this.addChild("Gyro", gyro);
+    SmartDashboard.putNumber("gyro", gyro.getAngle());
   }
 
   @Override

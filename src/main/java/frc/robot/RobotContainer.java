@@ -15,7 +15,6 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
@@ -60,8 +59,6 @@ public class RobotContainer {
                     true,
                     true),
             robotDrive));
-
-    SmartDashboard.putData(this.robotDrive);
   }
 
   /**
@@ -73,6 +70,10 @@ public class RobotContainer {
   private void configureButtonBindings() {
     new JoystickButton(this.driverController, Button.kR1.value)
         .whileTrue(new RunCommand(() -> this.robotDrive.setX(), this.robotDrive));
+  }
+
+  public void log() {
+    this.robotDrive.logData();
   }
 
   /**
