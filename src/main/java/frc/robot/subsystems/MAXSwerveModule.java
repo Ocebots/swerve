@@ -182,5 +182,8 @@ public class MAXSwerveModule {
 
     SmartDashboard.putNumber(name + ": Turn", this.getState().angle.getDegrees());
     SmartDashboard.putNumber(name + ": Drive", this.getState().speedMetersPerSecond);
+
+    SmartDashboard.putNumber(name + ": Desired Turn", this.desiredState.angle.getDegrees());
+    SmartDashboard.putNumber(name + ": Desired Drive", this.desiredState.speedMetersPerSecond);
   }
 }
