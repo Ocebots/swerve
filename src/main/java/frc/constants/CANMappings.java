@@ -3,12 +3,12 @@ package frc.constants;
 public class CANMappings {
 
   // SPARK MAX CAN IDs
-  public static final int FRONT_LEFT_DRIVING = 11;
-  public static final int REAR_LEFT_DRIVING = 13;
-  public static final int FRONT_RIGHT_DRIVING = 15;
-  public static final int REAR_RIGHT_DRIVING = 17;
-  public static final int FRONT_LEFT_TURNING = 10;
-  public static final int REAR_LEFT_TURNING = 12;
-  public static final int FRONT_RIGHT_TURNING = 14;
-  public static final int REAR_RIGHT_TURNING = 16;
+  public static final int FRONT_LEFT_DRIVING = 3;
+  public static final int REAR_LEFT_DRIVING = 5;
+  public static final int FRONT_RIGHT_DRIVING = 1;
+  public static final int REAR_RIGHT_DRIVING = 8;
+  public static final int FRONT_LEFT_TURNING = 4;
+  public static final int REAR_LEFT_TURNING = 6;
+  public static final int FRONT_RIGHT_TURNING = 2;
+  public static final int REAR_RIGHT_TURNING = 8;
 }
