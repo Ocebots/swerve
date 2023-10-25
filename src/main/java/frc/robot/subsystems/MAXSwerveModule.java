@@ -128,6 +128,14 @@ public class MAXSwerveModule {
         new Rotation2d(this.turningEncoder.getPosition() - this.chassisAngularOffset));
   }
 
+  public SwerveModuleState getDesiredState() {
+    // Apply chassis angular offset to the encoder position to get the position
+    // relative to the chassis.
+    return new SwerveModuleState(
+        this.desiredState.speedMetersPerSecond,
+        new Rotation2d(this.desiredState.angle.getRadians() - this.chassisAngularOffset));
+  }
+
   /**
    * Returns the current position of the module.
    *
@@ -175,15 +183,15 @@ public class MAXSwerveModule {
   public void sendData(String name) {
     SmartDashboard.putNumber(
         name + ": Turn error",
-        this.desiredState.angle.getDegrees() - this.getState().angle.getDegrees());
+        this.getDesiredState().angle.getDegrees() - this.getState().angle.getDegrees());
     SmartDashboard.putNumber(
         name + ": Drive error",
-        this.desiredState.speedMetersPerSecond - this.getState().speedMetersPerSecond);
+        this.getDesiredState().speedMetersPerSecond - this.getState().speedMetersPerSecond);
 
     SmartDashboard.putNumber(name + ": Turn", this.getState().angle.getDegrees());
     SmartDashboard.putNumber(name + ": Drive", this.getState().speedMetersPerSecond);
 
-    SmartDashboard.putNumber(name + ": Desired Turn", this.desiredState.angle.getDegrees());
-    SmartDashboard.putNumber(name + ": Desired Drive", this.desiredState.speedMetersPerSecond);
+    SmartDashboard.putNumber(name + ": Desired Turn", this.getDesiredState().angle.getDegrees());
+    SmartDashboard.putNumber(name + ": Desired Drive", this.getDesiredState().speedMetersPerSecond);
   }
 }
