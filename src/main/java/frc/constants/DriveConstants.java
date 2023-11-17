@@ -31,10 +31,10 @@ public class DriveConstants {
           new Translation2d(-WHEEL_BASE_METERS / 2, -TRACK_WIDTH_METERS / 2));
 
   // Angular offsets of the modules relative to the chassis in radians
-  public static final double FRONT_LEFT_CHASSIS_ANGULAR_OFFSET = 0;
+  public static final double FRONT_LEFT_CHASSIS_ANGULAR_OFFSET = -Math.PI / 2;
   public static final double FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET = 0;
-  public static final double BACK_LEFT_CHASSIS_ANGULAR_OFFSET = 0;
-  public static final double BACK_RIGHT_CHASSIS_ANGULAR_OFFSET = 0;
+  public static final double BACK_LEFT_CHASSIS_ANGULAR_OFFSET = Math.PI;
+  public static final double BACK_RIGHT_CHASSIS_ANGULAR_OFFSET = Math.PI / 2;
 
   public static final boolean GYRO_IS_REVERSED = false;
   public static final double FREE_SPEED_RPM = 5676;

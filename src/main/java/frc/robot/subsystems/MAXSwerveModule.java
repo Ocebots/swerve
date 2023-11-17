@@ -180,7 +180,7 @@ public class MAXSwerveModule {
     this.drivingEncoder.setPosition(0);
   }
 
-  public void sendData(String name) {
+  public void sendData(String name) { // TODO: Make the error output easier to understand
     SmartDashboard.putNumber(
         name + ": Turn error",
         this.getDesiredState().angle.getDegrees() - this.getState().angle.getDegrees());
