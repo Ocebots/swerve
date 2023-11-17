@@ -13,6 +13,7 @@ import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.constants.ModuleConstants;
 import frc.constants.PIDConstants;
 
@@ -127,6 +128,14 @@ public class MAXSwerveModule {
         new Rotation2d(this.turningEncoder.getPosition() - this.chassisAngularOffset));
   }
 
+  public SwerveModuleState getDesiredState() {
+    // Apply chassis angular offset to the encoder position to get the position
+    // relative to the chassis.
+    return new SwerveModuleState(
+        this.desiredState.speedMetersPerSecond,
+        new Rotation2d(this.desiredState.angle.getRadians() - this.chassisAngularOffset));
+  }
+
   /**
    * Returns the current position of the module.
    *
@@ -169,5 +178,20 @@ public class MAXSwerveModule {
   /** Zeroes all the SwerveModule encoders. */
   public void resetEncoders() {
     this.drivingEncoder.setPosition(0);
+  }
+
+  public void sendData(String name) {
+    SmartDashboard.putNumber(
+        name + ": Turn error",
+        this.getDesiredState().angle.getDegrees() - this.getState().angle.getDegrees());
+    SmartDashboard.putNumber(
+        name + ": Drive error",
+        this.getDesiredState().speedMetersPerSecond - this.getState().speedMetersPerSecond);
+
+    SmartDashboard.putNumber(name + ": Turn", this.getState().angle.getDegrees());
+    SmartDashboard.putNumber(name + ": Drive", this.getState().speedMetersPerSecond);
+
+    SmartDashboard.putNumber(name + ": Desired Turn", this.getDesiredState().angle.getDegrees());
+    SmartDashboard.putNumber(name + ": Desired Drive", this.getDesiredState().speedMetersPerSecond);
   }
 }

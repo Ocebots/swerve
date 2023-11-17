@@ -72,6 +72,10 @@ public class RobotContainer {
         .whileTrue(new RunCommand(() -> this.robotDrive.setX(), this.robotDrive));
   }
 
+  public void log() {
+    this.robotDrive.logData();
+  }
+
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *

@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
@@ -67,6 +68,15 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {}
+
+  public void logData() { // TODO: Test on robot
+    frontLeft.sendData("frontLeft");
+    frontRight.sendData("frontRight");
+    rearLeft.sendData("rearLeft");
+    rearRight.sendData("rearRight");
+
+    SmartDashboard.putNumber("gyro", gyro.getAngle());
+  }
 
   @Override
   public void periodic() {
