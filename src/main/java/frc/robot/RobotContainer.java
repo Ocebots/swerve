@@ -13,11 +13,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.constants.AutoConstants;
 import frc.constants.ControllerConstants;
@@ -36,7 +36,8 @@ public class RobotContainer {
   private final DriveSubsystem robotDrive = new DriveSubsystem();
 
   // The driver's controller
-  XboxController driverController = new XboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
+  CommandXboxController driverController =
+      new CommandXboxController(ControllerConstants.DRIVER_CONTROLLER_PORT);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -47,7 +48,7 @@ public class RobotContainer {
     this.robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
-        new RunCommand(
+        Commands.run(
             () ->
                 robotDrive.drive(
                     -MathUtil.applyDeadband(
@@ -68,8 +69,10 @@ public class RobotContainer {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(this.driverController, Button.kR1.value)
-        .whileTrue(new RunCommand(() -> this.robotDrive.setX(), this.robotDrive));
+    this.driverController.a().onTrue(Commands.runOnce(() -> this.robotDrive.zeroHeading()));
+    this.driverController
+        .rightBumper()
+        .whileTrue(Commands.run(() -> this.robotDrive.setX(), this.robotDrive));
   }
 
   public void log() {
