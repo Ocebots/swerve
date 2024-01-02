@@ -69,20 +69,25 @@ public class DriveSubsystem extends SubsystemBase {
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {}
 
-  public void logData() { // TODO: Test on robot
-    frontLeft.sendData("frontLeft");
-    frontRight.sendData("frontRight");
-    rearLeft.sendData("rearLeft");
-    rearRight.sendData("rearRight");
+  public void logData() {
+    frontLeft.sendData("drive/frontLeft");
+    frontRight.sendData("drive/frontRight");
+    rearLeft.sendData("drive/rearLeft");
+    rearRight.sendData("drive/rearRight");
 
-    SmartDashboard.putNumber("gyro", gyro.getAngle());
+    SmartDashboard.putNumber("drive/gyro", getHeading().getDegrees());
+
+    SmartDashboard.putNumber("drive/odometry/x", odometry.getPoseMeters().getX());
+    SmartDashboard.putNumber("drive/odometry/y", odometry.getPoseMeters().getY());
+    SmartDashboard.putNumber(
+        "drive/odometry/rot", odometry.getPoseMeters().getRotation().getDegrees());
   }
 
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
     this.odometry.update(
-        Rotation2d.fromDegrees(this.gyro.getAngle()),
+        getHeading(),
         new SwerveModulePosition[] {
           this.frontLeft.getPosition(),
           this.frontRight.getPosition(),
@@ -107,7 +112,7 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     this.odometry.resetPosition(
-        Rotation2d.fromDegrees(this.gyro.getAngle()),
+        getHeading(),
         new SwerveModulePosition[] {
           this.frontLeft.getPosition(),
           this.frontRight.getPosition(),
@@ -271,8 +276,9 @@ public class DriveSubsystem extends SubsystemBase {
    *
    * @return the robot's heading in degrees, from -180 to 180
    */
-  public double getHeading() {
-    return Rotation2d.fromDegrees(this.gyro.getAngle()).getDegrees();
+  public Rotation2d getHeading() {
+    return Rotation2d.fromDegrees(
+        this.gyro.getAngle() * (DriveConstants.GYRO_IS_REVERSED ? -1.0 : 1.0));
   }
 
   /**

@@ -36,6 +36,6 @@ public class DriveConstants {
   public static final double BACK_LEFT_CHASSIS_ANGULAR_OFFSET = Math.PI;
   public static final double BACK_RIGHT_CHASSIS_ANGULAR_OFFSET = Math.PI / 2;
 
-  public static final boolean GYRO_IS_REVERSED = false;
+  public static final boolean GYRO_IS_REVERSED = true;
   public static final double FREE_SPEED_RPM = 5676;
 }
