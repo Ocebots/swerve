@@ -9,11 +9,11 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
-import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
+import frc.utils.CustomSlewRateLimiter;
 import frc.utils.SwerveUtils;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -45,20 +45,23 @@ public class DriveSubsystem extends SubsystemBase {
   // The gyro sensor
   private final AHRS gyro = new AHRS();
 
-  // Slew rate filter variables for controlling lateral acceleration
   private double currentRotation = 0.0;
-  private double currentTranslationDir = 0.0;
-  private double currentTranslationMag = 0.0;
 
-  private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.MAGNITUDE_SLEW_RATE);
-  private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.ROTATIONAL_SLEW_RATE);
-  private double prevTime = WPIUtilJNI.now() * 1e-6;
+  // Slew rate filter variables for controlling lateral acceleration
+  private double currentTranslationDir = 0.0; // radian
+  private double currentTranslationMag = 0.0; // meter per second
+  private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.MAX_ACCELERATION);
+  private CustomSlewRateLimiter dirLimiter =
+      new CustomSlewRateLimiter(DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY, 0);
+
+  private SlewRateLimiter rotLimiter =
+      new SlewRateLimiter(DriveConstants.MAX_ROTATIONAL_ACCELERATION);
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry odometry =
       new SwerveDriveOdometry(
           DriveConstants.DRIVE_KINEMATICS,
-          Rotation2d.fromDegrees(this.gyro.getAngle()),
+          getHeading(),
           new SwerveModulePosition[] {
             this.frontLeft.getPosition(),
             this.frontRight.getPosition(),
@@ -123,7 +126,8 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /**
-   * Method to drive the robot using joystick info.
+   * Method to drive the robot using joystick info. This method may not work as intended if the
+   * joystick does not move in a circle
    *
    * @param xSpeed Speed of the robot in the x direction (forward).
    * @param ySpeed Speed of the robot in the y direction (sideways).
@@ -139,95 +143,50 @@ public class DriveSubsystem extends SubsystemBase {
 
     if (rateLimit) {
       // Convert XY to polar(theta and magnitude) for rate limiting
-      double inputTranslationDir = Math.atan2(ySpeed, xSpeed);
-      double inputTranslationMag = Math.sqrt(Math.pow(xSpeed, 2) + Math.pow(ySpeed, 2));
+      double inputTranslationDir = SwerveUtils.wrapAngle(Math.atan2(ySpeed, xSpeed));
+      double inputTranslationMag =
+          Math.sqrt(Math.pow(xSpeed, 2) + Math.pow(ySpeed, 2))
+              * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
 
-      // Calculate the direction slew rate based on an estimate of the lateral acceleration
-      // if driving set the rotation slew rate to a constant divided by current translation speed so
-      // the faster you are, the slower you turn
-      // else practically don't limit rotational speed
-      double directionSlewRate;
-      if (this.currentTranslationMag != 0.0) {
-        directionSlewRate =
-            Math.abs(DriveConstants.DIRECTION_SLEW_RATE / this.currentTranslationMag);
-      } else {
-        directionSlewRate =
-            500.0; // some high number that means the slew rate is effectively instantaneous
+      if (currentTranslationMag < 0.1) {
+        currentTranslationDir = inputTranslationDir;
+      } else if (inputTranslationMag < 0.1) {
+        inputTranslationDir = currentTranslationDir;
       }
 
-      double currentTime = WPIUtilJNI.now() * 1e-6;
-      double elapsedTime = currentTime - this.prevTime;
-      double angleDif =
-          SwerveUtils.angleDifference(inputTranslationDir, this.currentTranslationDir);
+      inputTranslationDir = SwerveUtils.optimizeAngle(inputTranslationDir, currentTranslationDir);
 
-      /*
-       * Description of the if below
-       *
-       * if the difference between the target direction and current direction is smallish,
-       * step the current direction slowly to match the input based on the slew rate and time.
-       * Allow the translation speed to change based on the limiter. This will result in the robot turning while it maintains speed
-       *
-       * if the difference is large and the robot is moving, slow down
-       * if stopped swap the direction and accelerate away.
-       * This performs a 180 flip that is then corrected by the first case. The robot stops, then accelerates backward
-       *
-       * if the difference is in the middle, step the current angle towards the target and slow the robot.
-       * This will eventually switch to the first case when the robot accelerates again.
-       */
-
-      // if angle is less than 81 degrees, step the current translation direction to the input with
-      // a step size the size of the slew rate, this will prevent the dir from changing too fast
-      // then limit the translation speed based on the limiter
-      if (angleDif < 0.45 * Math.PI) {
-        this.currentTranslationDir =
-            SwerveUtils.stepTowardsCircular(
-                currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
-        this.currentTranslationMag = magLimiter.calculate(inputTranslationMag);
-      } else if (angleDif > 0.85 * Math.PI) {
-        // if the angle is greater than 153 degrees and the requested translation speed is non-zero
-        // slow the robot speed to zero
-        if (this.currentTranslationMag
-            > 1e-4) { // some small number to avoid floating-point errors with equality checking
-          // keep currentTranslationDir unchanged
-          this.currentTranslationMag = magLimiter.calculate(0.0);
-        } else {
-          // if the robot speed is already at zero flip the angle so the robot reverses direction
-          // and begin to re-accelerate
-          this.currentTranslationDir = SwerveUtils.wrapAngle(currentTranslationDir + Math.PI);
-          this.currentTranslationMag = magLimiter.calculate(inputTranslationMag);
-        }
-      } else {
-        // if the angle is between the two checks, slow the robot to zero and begin to turn
-        this.currentTranslationDir =
-            SwerveUtils.stepTowardsCircular(
-                currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime);
-        this.currentTranslationMag = magLimiter.calculate(0.0);
+      if (Math.abs(inputTranslationDir - currentTranslationDir) > Math.PI / 2.0) {
+        inputTranslationDir += Math.PI;
+        inputTranslationMag *= -1;
       }
-      this.prevTime = currentTime;
+
+      inputTranslationDir = SwerveUtils.optimizeAngle(inputTranslationDir, currentTranslationDir);
+
+      inputTranslationMag *= 1 - Math.abs(inputTranslationDir - currentTranslationDir) / Math.PI;
+
+      dirLimiter.setRateLimit(
+          DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
+              * (1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND));
+
+      this.currentTranslationMag = magLimiter.calculate(inputTranslationMag);
+      this.currentTranslationDir = dirLimiter.calculate(inputTranslationDir);
 
       xSpeedCommanded = this.currentTranslationMag * Math.cos(currentTranslationDir);
       ySpeedCommanded = this.currentTranslationMag * Math.sin(currentTranslationDir);
-      this.currentRotation = rotLimiter.calculate(rot);
+      this.currentRotation = rotLimiter.calculate(rot) * DriveConstants.MAX_ANGULAR_SPEED;
     } else {
-      xSpeedCommanded = xSpeed;
-      ySpeedCommanded = ySpeed;
-      this.currentRotation = rot;
+      xSpeedCommanded = xSpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+      ySpeedCommanded = ySpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+      this.currentRotation = rot * DriveConstants.MAX_ANGULAR_SPEED;
     }
-
-    // Convert the commanded speeds into the correct units for the drivetrain
-    double xSpeedDelivered = xSpeedCommanded * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
-    double ySpeedDelivered = ySpeedCommanded * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
-    double rotDelivered = this.currentRotation * DriveConstants.MAX_ANGULAR_SPEED;
 
     var swerveModuleStates =
         DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedDelivered,
-                    ySpeedDelivered,
-                    rotDelivered,
-                    Rotation2d.fromDegrees(this.gyro.getAngle()))
-                : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
+                    xSpeedCommanded, ySpeedCommanded, this.currentRotation, getHeading())
+                : new ChassisSpeeds(xSpeedCommanded, ySpeedCommanded, this.currentRotation));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
     this.frontLeft.setDesiredState(swerveModuleStates[0]);
