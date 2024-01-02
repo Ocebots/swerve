@@ -58,7 +58,7 @@ public class DriveSubsystem extends SubsystemBase {
   SwerveDriveOdometry odometry =
       new SwerveDriveOdometry(
           DriveConstants.DRIVE_KINEMATICS,
-          Rotation2d.fromDegrees(this.gyro.getAngle()),
+          getHeading(),
           new SwerveModulePosition[] {
             this.frontLeft.getPosition(),
             this.frontRight.getPosition(),
@@ -223,10 +223,7 @@ public class DriveSubsystem extends SubsystemBase {
         DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeedDelivered,
-                    ySpeedDelivered,
-                    rotDelivered,
-                    Rotation2d.fromDegrees(this.gyro.getAngle()))
+                    xSpeedDelivered, ySpeedDelivered, rotDelivered, getHeading())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
