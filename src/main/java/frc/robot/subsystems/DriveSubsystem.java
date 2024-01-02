@@ -163,7 +163,8 @@ public class DriveSubsystem extends SubsystemBase {
 
       inputTranslationDir = SwerveUtils.optimizeAngle(inputTranslationDir, currentTranslationDir);
 
-      inputTranslationMag *= 1 - Math.abs(inputTranslationDir - currentTranslationDir) / Math.PI;
+      inputTranslationMag *=
+          1 - Math.abs(inputTranslationDir - currentTranslationDir) / (Math.PI / 2);
 
       dirLimiter.setRateLimit(
           DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
