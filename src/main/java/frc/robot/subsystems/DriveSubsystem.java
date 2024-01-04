@@ -157,7 +157,7 @@ public class DriveSubsystem extends SubsystemBase {
       }
 
       if (SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir) > Math.PI / 2.0) {
-        inputTranslationDir += Math.PI;
+        inputTranslationDir = currentTranslationDir;
         inputTranslationMag *= -1;
       }
 
