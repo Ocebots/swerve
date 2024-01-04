@@ -1,7 +1,6 @@
 package frc.utils;
 
 public class SwerveUtils {
-
   /**
    * Steps a value towards a target with a specified step size.
    *

@@ -14,9 +14,10 @@ public class DriveConstants {
   public static final double MAX_SPEED_METERS_PER_SECOND = 4.8;
   public static final double MAX_ANGULAR_SPEED = 2 * Math.PI; // radians per second
 
-  public static final double DIRECTION_SLEW_RATE = 1.2; // radians per second
-  public static final double MAGNITUDE_SLEW_RATE = 1.8; // percent per second (1 = 100%)
-  public static final double ROTATIONAL_SLEW_RATE = 2.0; // percent per second (1 = 100%)
+  // TODO: Tune these values
+  public static final double MAX_ACCELERATION = 9.6; // meters per second per second
+  public static final double MAX_DRIVE_ANGULAR_VELOCITY = 8; // radians per second
+  public static final double MAX_ROTATIONAL_ACCELERATION = 2; // percent per second
 
   // Chassis configuration
   public static final double TRACK_WIDTH_METERS = Units.inchesToMeters(27.5);
