@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,7 +14,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.constants.CANMappings;
 import frc.constants.DriveConstants;
-import frc.utils.CustomSlewRateLimiter;
 import frc.utils.SwerveUtils;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -51,8 +51,8 @@ public class DriveSubsystem extends SubsystemBase {
   private double currentTranslationDir = 0.0; // radian
   private double currentTranslationMag = 0.0; // meter per second
   private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.MAX_ACCELERATION);
-  private CustomSlewRateLimiter dirLimiter =
-      new CustomSlewRateLimiter(DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY, 0);
+
+  private double prevTime = MathSharedStore.getTimestamp();
 
   private SlewRateLimiter rotLimiter =
       new SlewRateLimiter(DriveConstants.MAX_ROTATIONAL_ACCELERATION);
@@ -145,8 +145,10 @@ public class DriveSubsystem extends SubsystemBase {
       // Convert XY to polar(theta and magnitude) for rate limiting
       double inputTranslationDir = SwerveUtils.wrapAngle(Math.atan2(ySpeed, xSpeed));
       double inputTranslationMag =
-          Math.sqrt(Math.pow(xSpeed, 2) + Math.pow(ySpeed, 2))
-              * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+          Math.min(
+              Math.sqrt(Math.pow(xSpeed, 2) + Math.pow(ySpeed, 2))
+                  * DriveConstants.MAX_SPEED_METERS_PER_SECOND,
+              DriveConstants.MAX_SPEED_METERS_PER_SECOND);
 
       if (currentTranslationMag < 0.1) {
         currentTranslationDir = inputTranslationDir;
@@ -154,25 +156,33 @@ public class DriveSubsystem extends SubsystemBase {
         inputTranslationDir = currentTranslationDir;
       }
 
-      inputTranslationDir = SwerveUtils.optimizeAngle(inputTranslationDir, currentTranslationDir);
-
-      if (Math.abs(inputTranslationDir - currentTranslationDir) > Math.PI / 2.0) {
+      if (SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir) > Math.PI / 2.0) {
         inputTranslationDir += Math.PI;
         inputTranslationMag *= -1;
       }
 
-      inputTranslationDir = SwerveUtils.optimizeAngle(inputTranslationDir, currentTranslationDir);
+      inputTranslationDir = SwerveUtils.wrapAngle(inputTranslationDir);
 
       inputTranslationMag *=
-          1 - Math.abs(inputTranslationDir - currentTranslationDir) / (Math.PI / 2);
+          1
+              - SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir)
+                  / (Math.PI / 2);
 
-      dirLimiter.setRateLimit(
-          DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
-              * (1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND));
+      double dirLimit =
+          Math.max(
+              0,
+              DriveConstants.MAX_DRIVE_ANGULAR_VELOCITY
+                  * ((1 - currentTranslationMag / DriveConstants.MAX_SPEED_METERS_PER_SECOND) * 0.90
+                      + 0.10));
+
+      double currentTime = MathSharedStore.getTimestamp();
 
       this.currentTranslationMag = magLimiter.calculate(inputTranslationMag);
-      this.currentTranslationDir = dirLimiter.calculate(inputTranslationDir);
+      this.currentTranslationDir =
+          SwerveUtils.stepTowardsCircular(
+              currentTranslationDir, inputTranslationDir, dirLimit * (currentTime - prevTime));
 
+      prevTime = currentTime;
       xSpeedCommanded = this.currentTranslationMag * Math.cos(currentTranslationDir);
       ySpeedCommanded = this.currentTranslationMag * Math.sin(currentTranslationDir);
       this.currentRotation = rotLimiter.calculate(rot) * DriveConstants.MAX_ANGULAR_SPEED;

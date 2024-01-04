@@ -2,33 +2,6 @@ package frc.utils;
 
 public class SwerveUtils {
   /**
-   * Take two angles in radians and find the combonation with the shortest distance
-   *
-   * @param self this angle
-   * @param other the other comparison angle
-   * @return An equivelent angle to self
-   */
-  public static double optimizeAngle(double self, double other) {
-    double a = wrapAngle(other);
-    double b = wrapAngle(self);
-
-    double b1 = b + 2.0 * Math.PI;
-    double b2 = b - 2.0 * Math.PI;
-
-    double diff = Math.abs(a - b);
-    double diff1 = Math.abs(a - b1);
-    double diff2 = Math.abs(a - b2);
-
-    if (diff < diff1 && diff < diff2) {
-      return b;
-    } else if (diff1 < diff && diff1 < diff2) {
-      return b1;
-    } else {
-      return b2;
-    }
-  }
-
-  /**
    * Steps a value towards a target with a specified step size.
    *
    * @param current The current or starting value. Can be positive or negative.
