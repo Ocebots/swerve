@@ -150,24 +150,32 @@ public class DriveSubsystem extends SubsystemBase {
                   * DriveConstants.MAX_SPEED_METERS_PER_SECOND,
               DriveConstants.MAX_SPEED_METERS_PER_SECOND);
 
+      // If either translation magnitudes are low enough, it's direction is irrelevant
       if (currentTranslationMag < 0.1) {
         currentTranslationDir = inputTranslationDir;
       } else if (inputTranslationMag < 0.1) {
         inputTranslationDir = currentTranslationDir;
       }
 
+      // If the new direction is over 90º from the current direction, slow the robot
+      // to a near stop before continuing. The block above activates when the robot
+      // has slowed down enough
       if (SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir) > Math.PI / 2.0) {
         inputTranslationDir = currentTranslationDir;
         inputTranslationMag *= -1;
       }
 
-      inputTranslationDir = SwerveUtils.wrapAngle(inputTranslationDir);
-
+      // Decrease the requested speed based on how far the current translation
+      // direction is from the requested one. A 90º angle means the requested
+      // magnitude is 0, a 0º angle means the magnitude is unchanged.
       inputTranslationMag *=
           1
               - SwerveUtils.angleDifference(inputTranslationDir, currentTranslationDir)
                   / (Math.PI / 2);
 
+      // Set the direction limit to a percent of the maxiumum based on the percent of
+      // max speed we are currently going at. This is limited to prevent fully
+      // disabling steering and leaves it at 10%.
       double dirLimit =
           Math.max(
               0,
@@ -198,8 +206,10 @@ public class DriveSubsystem extends SubsystemBase {
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeedCommanded, ySpeedCommanded, this.currentRotation, getHeading())
                 : new ChassisSpeeds(xSpeedCommanded, ySpeedCommanded, this.currentRotation));
+
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
+
     this.frontLeft.setDesiredState(swerveModuleStates[0]);
     this.frontRight.setDesiredState(swerveModuleStates[1]);
     this.rearLeft.setDesiredState(swerveModuleStates[2]);
